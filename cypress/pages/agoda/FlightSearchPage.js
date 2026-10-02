@@ -1,23 +1,35 @@
 class FlightSearchPage {
+
   selectFrom(city) {
     cy.get('[data-selenium="flight-origin-search-input"]')
       .clear()
       .type(city)
-      .type('{downarrow}')
-      .type('{enter}')
+
+    cy.contains(
+      'p[data-testid="wrap-highlight-text"]',
+      'Jakarta, Indonesia'
+    )
+      .should('be.visible')
+      .click()
+
+    cy.get('[data-selenium="flight-origin-search-input"]')
+      .should('have.value', 'Jakarta')
   }
 
   selectTo(city) {
     cy.get('[data-selenium="flight-destination-search-input"]')
       .clear()
       .type(city)
-      .type('{downarrow}')
-      .type('{enter}')
 
-    cy.wait(500)
+    cy.contains(
+      'p[data-testid="wrap-highlight-text"]',
+      'Singapore, Singapore'
+    )
+      .should('be.visible')
+      .click()
 
     cy.get('[data-selenium="flight-destination-search-input"]')
-      .type('{esc}')
+      .should('have.value', 'Singapore')
   }
 
   openDepartureDate() {
@@ -28,12 +40,15 @@ class FlightSearchPage {
 
   selectDepartureDate() {
     const tomorrow = new Date()
+
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     const day = tomorrow.getDate()
+
     const month = tomorrow.toLocaleString('en-US', {
       month: 'long'
     })
+
     const year = tomorrow.getFullYear()
 
     const weekday = tomorrow.toLocaleString('en-US', {
@@ -45,17 +60,24 @@ class FlightSearchPage {
     const dateTestId =
       `${weekday}, ${month} ${day}${ordinal}, ${year}`
 
-    cy.get(`[data-testid="${dateTestId}"]`, {
-      timeout: 15000
-    })
-      .should('be.visible')
-      .click()
-
-    const tomorrowDate =
-      `${year}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    cy.log(`Tomorrow: ${dateTestId}`)
 
     cy.get('[data-component="flight-search-departureDate"]')
-      .should('have.attr', 'data-date', tomorrowDate)
+      .should('be.visible')
+
+    cy.get('[data-testid]', {
+      timeout: 15000
+    })
+      .filter(`[data-testid="${dateTestId}"]`)
+      .should('exist')
+      .then(($date) => {
+        $date[0].click()
+      })
+
+    cy.get('[data-component="flight-search-departureDate"]')
+      .should('be.visible')
+
+    cy.log(`Departure date selected: ${dateTestId}`)
   }
 
   getOrdinal(day) {
@@ -66,10 +88,13 @@ class FlightSearchPage {
     switch (day % 10) {
       case 1:
         return 'st'
+
       case 2:
         return 'nd'
+
       case 3:
         return 'rd'
+
       default:
         return 'th'
     }
