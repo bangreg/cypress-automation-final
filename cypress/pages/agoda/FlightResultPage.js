@@ -1,5 +1,4 @@
 class FlightResultPage {
-
   openAllAirlines() {
     cy.get('[data-testid="show-all-flight-filter-item-airline"]')
       .should('be.visible')
@@ -20,90 +19,73 @@ class FlightResultPage {
   }
 
   selectEarliestFlight() {
-    cy.get('[data-testid="web-refresh-flights-card"]')
+    cy.get(
+      'button[aria-label^="Expand flight details Malaysia Airlines"]'
+    )
       .should('have.length.greaterThan', 0)
-      .then(($cards) => {
+      .then(($buttons) => {
+        const flights = []
 
-        let earliestIndex = 0
-        let earliestMinutes = Infinity
+        $buttons.each((index, button) => {
+          const label = button.getAttribute('aria-label') || ''
+          const match = label.match(
+            /Malaysia Airlines\s+(\d{1,2}):(\d{2})/
+          )
 
-        $cards.each((index, card) => {
-
-          const departureText = Cypress.$(card)
-            .find('[data-testid="departure-time"]')
-            .first()
-            .text()
-            .trim()
-
-          if (!departureText) {
+          if (!match) {
             return
           }
 
-          const [hours, minutes] =
-            departureText.split(':').map(Number)
+          const hours = Number(match[1])
+          const minutes = Number(match[2])
 
-          const totalMinutes =
-            (hours * 60) + minutes
-
-          if (totalMinutes < earliestMinutes) {
-            earliestMinutes = totalMinutes
-            earliestIndex = index
-          }
-        })
-
-        const earliestHour =
-          Math.floor(earliestMinutes / 60)
-
-        const earliestMinute =
-          String(earliestMinutes % 60).padStart(2, '0')
-
-        cy.log(
-          `Earliest flight: ${earliestHour}:${earliestMinute}`
-        )
-
-        cy.log(
-          `Earliest card index: ${earliestIndex}`
-        )
-
-        // Cari tombol Expand pada earliest flight
-        cy.get('[data-testid="web-refresh-flights-card"]')
-          .eq(earliestIndex)
-          .find('button[aria-label^="Expand flight details"]')
-          .should('be.visible')
-          .then(($button) => {
-
-            cy.log(
-              `Expand button: ${$button.attr('aria-label')}`
-            )
-
-            // Native click untuk menghindari React re-render
-            $button[0].click()
+          flights.push({
+            index,
+            label,
+            totalMinutes: hours * 60 + minutes
           })
-
-        // Pastikan tombol benar-benar berubah menjadi expanded
-        cy.get('[data-testid="web-refresh-flights-card"]')
-          .eq(earliestIndex)
-          .find('button[aria-label^="Collapse flight details"]')
-          .should('have.attr', 'aria-expanded', 'true')
-
-        // Setelah expand, detail flight harus muncul
-        cy.get('[data-testid="flight-details-expand"]', {
-          timeout: 15000
         })
+
+        if (flights.length === 0) {
+          throw new Error(
+            'Expand buttons were found, but departure times could not be read from their labels.'
+          )
+        }
+
+        flights.sort((a, b) => a.totalMinutes - b.totalMinutes)
+
+        const earliestFlight = flights[0]
+
+        cy.log(`Earliest flight: ${earliestFlight.label}`)
+
+        cy.get(
+          'button[aria-label^="Expand flight details Malaysia Airlines"]'
+        )
+          .eq(earliestFlight.index)
           .should('be.visible')
+          .and('not.be.disabled')
+          .click()
+
+        cy.get(
+          'button[aria-label^="Collapse flight details Malaysia Airlines"]'
+        )
+          .should('be.visible')
+          .and('have.attr', 'aria-expanded', 'true')
       })
   }
 
   clickSelectFlight() {
-    cy.get('[data-testid="flight-details-expand"]', {
+    cy.get('[data-testid="flight-detail-select-button"]', {
       timeout: 15000
     })
       .should('be.visible')
-
-    cy.get('[data-testid="flight-details-expand"]')
-      .find('[data-testid="flight-detail-select-button"]')
-      .should('be.visible')
+      .and('not.be.disabled')
       .click()
+  }
+
+  verifyBookingPage() {
+    cy.location('pathname')
+      .should('include', '/packages/book')
   }
 }
 
