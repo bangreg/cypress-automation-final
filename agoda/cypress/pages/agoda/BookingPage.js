@@ -115,6 +115,60 @@ class BookingPage {
             .click()
     }
 
+    fillPassengerPassportNumber(passportNumber) {
+        cy.get('[data-testid="flight.forms.i0.units.i0.passportNumber"]')
+            .should('be.visible')
+            .clear()
+            .type(passportNumber)
+            .should('have.value', passportNumber)
+    }
+
+    selectPassportCountryOfIssue(country) {
+        cy.get('[data-testid="flight.forms.i0.units.i0.passportCountryOfIssue"]')
+            .find('[role="combobox"]')
+            .should('be.visible')
+            .click()
+
+        cy.contains('[role="option"], [role="listbox"] *', new RegExp(`^${country}$`))
+            .should('be.visible')
+            .click()
+
+        cy.get('[data-testid="flight.forms.i0.units.i0.passportCountryOfIssue"]')
+            .should('contain.text', country)
+    }
+
+    fillPassengerPassportExpiryDate(day, month, year) {
+        cy.get(
+            '[data-testid="flight.forms.i0.units.i0.passportExpiryDate-DateInputDataTestId"]'
+        )
+            .should('be.visible')
+            .clear()
+            .type(day)
+            .should('have.value', day)
+
+        cy.get(
+            '[data-testid="flight.forms.i0.units.i0.passportExpiryDate-MonthInputDataTestId"]'
+        )
+            .find('[role="combobox"]')
+            .should('be.visible')
+            .click()
+
+        cy.contains(
+            '[role="option"], [role="listbox"] *',
+            new RegExp(`^${month}$`)
+        )
+            .should('be.visible')
+            .click()
+
+        cy.get(
+            '[data-testid="flight.forms.i0.units.i0.passportExpiryDate-YearInputDataTestId"]'
+        )
+            .should('be.visible')
+            .clear()
+            .type(year)
+            .should('have.value', year)
+    }
+
     selectBasicSupportLevel() {
         cy.get('[data-testid="ceg-upsell-select-button-option-BASIC"]')
             .should('be.visible')

@@ -28,15 +28,20 @@ describe('Agoda Flight Booking', () => {
 
   // Passenger test data
   const passenger = {
-    firstName: 'Test',
-    lastName: 'Passenger',
-    email: 'test@example.com',
+    firstName: 'Samuel',
+    lastName: 'Siregar',
+    email: 'samuelsiregar@example.com',
     mobileNumber: '81312345678',
     gender: 'Male',
     birthDay: '01',
     birthMonth: 'January',
     birthYear: '1990',
-    nationality: 'Indonesia'
+    nationality: 'Indonesia',
+    passportNumber: 'A12345678',
+    passportCountryOfIssue: 'Indonesia',
+    passportExpiryDay: '31',
+    passportExpiryMonth: 'December',
+    passportExpiryYear: '2030',
   }
 
   it('should complete flight booking flow until payment page', () => {
@@ -76,6 +81,14 @@ describe('Agoda Flight Booking', () => {
       passenger.birthYear
     )
     bookingPage.selectPassengerNationality(passenger.nationality)
+    bookingPage.fillPassengerPassportNumber(passenger.passportNumber)
+    bookingPage.selectPassportCountryOfIssue(passenger.passportCountryOfIssue)
+    bookingPage.fillPassengerPassportExpiryDate(
+      passenger.passportExpiryDay,
+      passenger.passportExpiryMonth,
+      passenger.passportExpiryYear
+    )
+
 
     // 5. Select optional services
     bookingPage.selectBasicSupportLevel()
@@ -85,6 +98,8 @@ describe('Agoda Flight Booking', () => {
     // 6. Continue to payment page
     bookingPage.continueToPayment()
     bookingPage.declineSupportUpgrade()
+    
+    //Expect datanya dilakukan di page memilih pembayaran (gak perlu bayar)
     bookingPage.verifyPaymentPage()
   })
 })
